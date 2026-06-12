@@ -1,0 +1,233 @@
+.card {
+  width: 270px;
+  height: 460px;
+  background: #0A192F;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* ─── BIRTHDAY GOLDEN VARIANT ─────────────────────────────── */
+.birthdayCard {
+  border: 2px solid #DACB88;
+  box-shadow:
+    0 0 0 1px rgba(218, 203, 136, 0.15),
+    0 0 50px rgba(218, 203, 136, 0.45),
+    0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  animation: birthdayPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes birthdayPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(218, 203, 136, 0.15),
+      0 0 50px rgba(218, 203, 136, 0.45),
+      0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(218, 203, 136, 0.3),
+      0 0 80px rgba(218, 203, 136, 0.65),
+      0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+.birthdayDataSection {
+  background: linear-gradient(160deg, rgba(218, 203, 136, 0.07) 0%, #0A192F 45%);
+}
+
+.birthdayTeamTag {
+  background: #DACB88;
+  color: #0A192F;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.birthdayName {
+  color: #DACB88;
+}
+
+.birthdayStatus {
+  color: #DACB88;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+/* ─── FOTO ─────────────────────────────────────────────────── */
+.photoSection {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.fullPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, #0A192F 0%, transparent 45%);
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+}
+
+.teamTag {
+  background: #E63946;
+  color: white;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 5px 12px;
+  border-radius: 6px;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ─── CORPO ─────────────────────────────────────────────────── */
+.dataSection {
+  flex: 1;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mainInfo {
+  margin-bottom: 12px;
+}
+
+.name {
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #E63946;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 5px;
+}
+
+/* ─── LISTA ─────────────────────────────────────────────────── */
+.detailsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 9px;
+  color: #64748b;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  display: block;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.valueRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.value {
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.redIcon {
+  color: #E63946;
+  flex-shrink: 0;
+}
+
+.linkedinBtn {
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.linkedinBtn:hover {
+  background: #E63946;
+}
+
+/* ─── FOOTER ─────────────────────────────────────────────────── */
+.footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.authInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.idNumber {
+  color: white;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status {
+  color: #10b981;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+.fingerIcon {
+  color: white;
+  opacity: 0.2;
+}

@@ -1,0 +1,58 @@
+.logoloop {
+  position: relative;
+  overflow: hidden;
+}
+
+.logoloop__track {
+  display: flex;
+  flex-direction: row;
+  will-change: transform;
+}
+
+.logoloop--vertical .logoloop__track {
+  flex-direction: column;
+}
+
+.logoloop__list {
+  display: flex;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  gap: var(--logoloop-gap);
+}
+
+.logoloop--vertical .logoloop__list {
+  flex-direction: column;
+}
+
+.logoloop__item img {
+  height: var(--logoloop-logoHeight);
+  width: auto;
+  object-fit: contain;
+  transition: transform .2s ease;
+}
+
+.logoloop__item:hover img {
+  transform: scale(1.05);
+}
+
+/* Fade nas bordas se fadeOut = true */
+.logoloop.logoloop--horizontal {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--logoloop-fadeColor, white) 10%,
+    var(--logoloop-fadeColor, white) 90%,
+    transparent
+  );
+}
+
+.logoloop.logoloop--vertical {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    var(--logoloop-fadeColor, white) 10%,
+    var(--logoloop-fadeColor, white) 90%,
+    transparent
+  );
+}

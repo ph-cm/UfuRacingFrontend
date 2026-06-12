@@ -1,6 +1,8 @@
 "use client";
+import { useProject } from "@/context/ProjectContext";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+const { highlight, news } = useProject();
 
 export default function Hero() {
   return (

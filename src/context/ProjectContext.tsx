@@ -1,55 +1,281 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from 'react';
 
-// Tipos atualizados com campos de Imagem
-type NewsItem = { id: number; title: string; date: string; summary: string; image: string };
-type Sponsor = { id: number; name: string; logoUrl: string }; 
-type Highlight = { 
-    memberName: string; 
-    memberRole: string; 
-    memberPhoto: string; // Novo
-    areaName: string; 
-    areaDesc: string;
-    areaPhoto: string;   // Novo
-};
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+
+import {
+  getSponsors,
+  getNews,
+  getHighlight,
+  getMembers,
+  createMember,
+  deleteMember,
+  type MemberDTO,
+} from "@/services/api";
+
+import type { Member } from "@/types/member";
+
+// Interfaces exportadas para usar no Admin se precisar
+export interface Highlight {
+  memberName: string;
+  memberRole: string;
+  memberPhoto: string;
+  areaName: string;
+  areaDesc: string;
+  areaPhoto: string;
+}
+
+export interface NewsItem {
+  id: number | string;
+  title: string;
+  summary: string;
+  image: string;
+  date?: string;
+}
+
+export interface Sponsor {
+  id: number | string;
+  name: string;
+  logoUrl: string;
+}
+
+interface MemberCreateDTO {
+  name: string;
+  role: string;
+  team: string;
+  photo_url: string | null;
+  email: string | null;
+  linkedin: string | null;
+  birth_date?: string | null;
+  active: boolean;
+}
 
 interface ProjectContextType {
+  highlight: Highlight;
   news: NewsItem[];
   sponsors: Sponsor[];
-  highlight: Highlight;
+  members: Member[];
+  loading: boolean;
+
+  updateHighlight: (data: Highlight) => void;
   addNews: (item: NewsItem) => void;
   addSponsor: (item: Sponsor) => void;
-  updateHighlight: (data: Highlight) => void;
+  removeSponsor: (id: number | string) => void;
+
+  addMember: (member: Omit<Member, "id">) => Promise<void>;
+  removeMember: (id: number) => Promise<void>;
+  reloadMembers: () => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
+const LS_KEYS = {
+  sponsors: "@ufuracing-sponsors",
+  news: "@ufuracing-news",
+  highlight: "@ufuracing-highlight",
+};
+
+const DEFAULT_HIGHLIGHT: Highlight = {
+  memberName: "Membro Destaque",
+  memberRole: "Capitão",
+  memberPhoto: "",
+  areaName: "Engenharia",
+  areaDesc: "Desenvolvimento de sistemas",
+  areaPhoto: "",
+};
+
+// mapeia backend -> front (tolerante a snake_case/camelCase)
+function memberFromDTO(m: any): Member {
+  return {
+    id: m.id,
+    name: m.name,
+    role: m.role,
+    team: m.team,
+    photoUrl: (m.photoUrl ?? m.photo_url ?? undefined) || undefined,
+    email: (m.email ?? undefined) || undefined,
+    linkedin: (m.linkedin ?? undefined) || undefined,
+    birthDate: (m.birthDate ?? m.birth_date ?? undefined) || undefined,
+  };
+}
+
+function memberToCreateDTO(m: Omit<Member, "id">): MemberCreateDTO {
+  return {
+    name: m.name,
+    role: m.role,
+    team: m.team,
+    photo_url: m.photoUrl ?? null,
+    email: m.email ?? null,
+    linkedin: m.linkedin ?? null,
+    birth_date: m.birthDate ?? null,
+    active: true,
+  };
+}
+
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  // Dados Iniciais com Placeholders de Imagem
-  const [news, setNews] = useState<NewsItem[]>([
-    { id: 1, title: "Lançamento do Protótipo 2026", date: "10/02/2026", summary: "A nova aerodinâmica foi testada com sucesso.", image: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=1000" },
-  ]);
+  const [loading, setLoading] = useState(true);
 
-  const [sponsors, setSponsors] = useState<Sponsor[]>([
-    { id: 1, name: "UFU", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Bras%C3%A3o_UFU.jpg/1200px-Bras%C3%A3o_UFU.jpg" },
-    { id: 2, name: "METAL HORSE", logoUrl: "" }, // Exemplo sem logo
-  ]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [highlight, setHighlight] = useState<Highlight>(DEFAULT_HIGHLIGHT);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
 
-  const [highlight, setHighlight] = useState<Highlight>({
-    memberName: "Pedro Henrique",
-    memberRole: "Diretor Financeiro",
-    memberPhoto: "https://randomuser.me/api/portraits/men/32.jpg", // Exemplo
-    areaName: "Aerodinâmica",
-    areaDesc: "Otimização do fluxo de ar para ganho de downforce.",
-    areaPhoto: "https://images.unsplash.com/photo-1580273916550-e323be2ed532?auto=format&fit=crop&q=80&w=1000",
-  });
+  // 1) Primeiro: carrega cache (rápido) — SOMENTE sponsors/news/highlight.
+  // Members NÃO ficam mais no localStorage, porque agora é 100% backend.
+  useEffect(() => {
+    try {
+      const savedSponsors = localStorage.getItem(LS_KEYS.sponsors);
+      const savedNews = localStorage.getItem(LS_KEYS.news);
+      const savedHighlight = localStorage.getItem(LS_KEYS.highlight);
 
-  const addNews = (item: NewsItem) => setNews([item, ...news]);
-  const addSponsor = (item: Sponsor) => setSponsors([...sponsors, item]);
-  const updateHighlight = (data: Highlight) => setHighlight(data);
+      if (savedSponsors) setSponsors(JSON.parse(savedSponsors));
+      if (savedNews) setNews(JSON.parse(savedNews));
+      if (savedHighlight) setHighlight(JSON.parse(savedHighlight));
+    } catch (e) {
+      console.warn("Falha ao ler localStorage:", e);
+    }
+  }, []);
+
+  async function reloadMembers() {
+    const data = await getMembers();
+    const normalized = (data ?? []).map(memberFromDTO);
+    setMembers(normalized);
+  }
+
+  // 2) Depois: busca do backend e atualiza cache
+  useEffect(() => {
+    (async () => {
+      try {
+        const [sp, nw, hi] = await Promise.all([
+          getSponsors(),
+          getNews(),
+          getHighlight(),
+        ]);
+
+        const normalizedSponsors: Sponsor[] = (sp ?? []).map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          logoUrl: s.logoUrl ?? s.logo_url ?? s.logo ?? "",
+        }));
+
+        setSponsors(normalizedSponsors);
+        localStorage.setItem(
+          LS_KEYS.sponsors,
+          JSON.stringify(normalizedSponsors)
+        );
+
+        const normalizedNews: NewsItem[] = (nw ?? []).map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          summary: n.summary,
+          image: n.image ?? "",
+          date: n.date,
+        }));
+
+        setNews(normalizedNews);
+        localStorage.setItem(LS_KEYS.news, JSON.stringify(normalizedNews));
+
+        const normalizedHighlight: Highlight = hi
+          ? {
+              memberName: hi.memberName ?? DEFAULT_HIGHLIGHT.memberName,
+              memberRole: hi.memberRole ?? DEFAULT_HIGHLIGHT.memberRole,
+              memberPhoto: hi.memberPhoto ?? DEFAULT_HIGHLIGHT.memberPhoto,
+              areaName: hi.areaName ?? DEFAULT_HIGHLIGHT.areaName,
+              areaDesc: hi.areaDesc ?? DEFAULT_HIGHLIGHT.areaDesc,
+              areaPhoto:
+                (hi as any).areaPhoto ??
+                (hi as any).area_photo ??
+                DEFAULT_HIGHLIGHT.areaPhoto,
+            }
+          : DEFAULT_HIGHLIGHT;
+
+        setHighlight(normalizedHighlight);
+        localStorage.setItem(
+          LS_KEYS.highlight,
+          JSON.stringify(normalizedHighlight)
+        );
+
+        // ✅ MEMBERS: agora vem do backend
+        await reloadMembers();
+      } catch (e) {
+        console.warn("Falha ao carregar dados do backend:", e);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const updateHighlight = (data: Highlight) => {
+    setHighlight(data);
+    try {
+      localStorage.setItem(LS_KEYS.highlight, JSON.stringify(data));
+    } catch {}
+  };
+
+  const addNews = (item: NewsItem) => {
+    setNews((prev) => {
+      const next = [item, ...prev];
+      try {
+        localStorage.setItem(LS_KEYS.news, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const addSponsor = (item: Sponsor) => {
+    setSponsors((prev) => {
+      const next = [...prev, item];
+      try {
+        localStorage.setItem(LS_KEYS.sponsors, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const removeSponsor = (id: number | string) => {
+    setSponsors((prev) => {
+      const next = prev.filter((s) => String(s.id) !== String(id));
+      try {
+        localStorage.setItem(LS_KEYS.sponsors, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  // ✅ agora cria no backend
+  const addMember = async (member: Omit<Member, "id">) => {
+    const payload = memberToCreateDTO(member);
+    const created: MemberDTO = await createMember(payload);
+    setMembers((prev) => [memberFromDTO(created), ...prev]);
+  };
+
+  // ✅ agora remove no backend
+  const removeMember = async (id: number) => {
+    await deleteMember(id);
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+  };
 
   return (
-    <ProjectContext.Provider value={{ news, sponsors, highlight, addNews, addSponsor, updateHighlight }}>
+    <ProjectContext.Provider
+      value={{
+        highlight,
+        news,
+        sponsors,
+        members,
+        loading,
+        updateHighlight,
+        addNews,
+        addSponsor,
+        removeSponsor,
+        addMember,
+        removeMember,
+        reloadMembers,
+      }}
+    >
       {children}
     </ProjectContext.Provider>
   );
@@ -57,6 +283,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
 export const useProject = () => {
   const context = useContext(ProjectContext);
-  if (!context) throw new Error("useProject must be used within a ProjectProvider");
+  if (!context) {
+    throw new Error("useProject deve ser usado dentro de um ProjectProvider");
+  }
   return context;
 };

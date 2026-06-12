@@ -1,67 +1,120 @@
-import { Mail, MapPin, Phone, Instagram, Linkedin, Youtube } from "lucide-react";
+import Link from "next/link";
+import { Instagram, Linkedin, Youtube, Mail, MapPin } from "lucide-react";
+
+const year = new Date().getFullYear();
+
+const navLinks = [
+  { label: "A Equipe",     href: "/sobre" },
+  { label: "Notícias",     href: "/news" },
+  { label: "Competições",  href: "/#competicoes" },
+  { label: "Projeto",      href: "/#subareas" },
+];
+
+const socialLinks = [
+  { label: "Instagram", icon: Instagram, href: "#" },
+  { label: "LinkedIn",  icon: Linkedin,  href: "#" },
+  { label: "YouTube",   icon: Youtube,   href: "#" },
+];
 
 export default function Footer() {
   return (
-    <footer className="bg-[#111111] text-white py-16 border-t border-zinc-800">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          
+    <footer className="bg-carbon text-white">
+      <div className="max-w-7xl mx-auto px-6 md:px-10">
+
+        {/* Top grid */}
+        <div className="grid md:grid-cols-12 gap-12 pt-20 pb-16 border-b border-white/8">
+
           {/* Brand */}
-          <div className="col-span-1 md:col-span-1">
-            <h2 className="text-2xl font-montserrat font-bold text-white mb-6">
-              FORMULA<span className="text-[#FFD000]">SAE</span>
-            </h2>
-            <p className="text-zinc-400 text-sm leading-relaxed">
-              Construindo mais do que carros de corrida. Formando os melhores engenheiros do país através da paixão e dedicação.
+          <div className="md:col-span-5">
+            <div className="flex items-center gap-2.5 mb-6">
+              <span className="block w-0.5 h-6 bg-crimson" />
+              <span className="text-white font-black text-sm tracking-tight uppercase leading-none">
+                UFU<span className="text-crimson">Racing</span>
+              </span>
+            </div>
+            <p className="text-white/35 text-sm leading-relaxed max-w-xs">
+              Equipe Formula SAE da Universidade Federal de Uberlândia.
+              Formando engenheiros de alta performance através da competição real desde 2015.
             </p>
+            <div className="flex items-center gap-3 mt-8">
+              {socialLinks.map(({ label, icon: Icon, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-8 h-8 border border-white/12 flex items-center justify-center text-white/35 hover:text-white hover:border-white/30 transition-all"
+                >
+                  <Icon size={13} strokeWidth={1.75} />
+                </a>
+              ))}
+            </div>
           </div>
 
-          {/* Links */}
-          <div>
-            <h3 className="font-bold text-lg mb-6 text-[#FFD000]">Navegação</h3>
-            <ul className="space-y-3 text-zinc-400 text-sm">
-              <li><a href="#" className="hover:text-white transition">Home</a></li>
-              <li><a href="#" className="hover:text-white transition">A Equipe</a></li>
-              <li><a href="#" className="hover:text-white transition">Protótipos</a></li>
-              <li><a href="#" className="hover:text-white transition">Transparência</a></li>
+          {/* Nav */}
+          <div className="md:col-span-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/25 mb-6">
+              Navegação
+            </p>
+            <ul className="space-y-3.5">
+              {navLinks.map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="text-sm text-white/45 hover:text-white/90 transition-colors"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Contato */}
-          <div>
-            <h3 className="font-bold text-lg mb-6 text-[#FFD000]">Contato</h3>
-            <ul className="space-y-4 text-zinc-400 text-sm">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-white shrink-0" />
-                <span>Av. Trabalhador São-carlense, 400<br/>São Carlos - SP</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-white" />
-                <span>contato@formulasae.com.br</span>
-              </li>
-            </ul>
-          </div>
+          {/* Contact */}
+          <div className="md:col-span-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/25 mb-6">
+              Contato
+            </p>
+            <div className="space-y-4">
+              <a
+                href="mailto:contato@ufuracing.com.br"
+                className="flex items-center gap-3 text-sm text-white/45 hover:text-white/90 transition-colors"
+              >
+                <Mail size={13} className="shrink-0 text-crimson" strokeWidth={2} />
+                contato@ufuracing.com.br
+              </a>
+              <div className="flex items-start gap-3 text-sm text-white/35">
+                <MapPin size={13} className="shrink-0 text-white/25 mt-0.5" strokeWidth={2} />
+                Universidade Federal de Uberlândia — Uberlândia, MG
+              </div>
+            </div>
 
-          {/* Social */}
-          <div>
-             <h3 className="font-bold text-lg mb-6 text-[#FFD000]">Siga-nos</h3>
-             <div className="flex gap-4">
-               <a href="#" className="w-10 h-10 bg-zinc-800 flex items-center justify-center rounded-full hover:bg-[#FFD000] hover:text-black transition-colors">
-                 <Instagram size={20} />
-               </a>
-               <a href="#" className="w-10 h-10 bg-zinc-800 flex items-center justify-center rounded-full hover:bg-[#FFD000] hover:text-black transition-colors">
-                 <Linkedin size={20} />
-               </a>
-               <a href="#" className="w-10 h-10 bg-zinc-800 flex items-center justify-center rounded-full hover:bg-[#FFD000] hover:text-black transition-colors">
-                 <Youtube size={20} />
-               </a>
-             </div>
+            <div className="mt-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/25 mb-3">
+                Parcerias
+              </p>
+              <Link href="/sponsors/contact">
+                <span className="inline-block border border-crimson/60 text-crimson text-[10px] font-black uppercase tracking-[0.15em] px-5 py-2.5 hover:bg-crimson hover:text-white transition-all cursor-pointer">
+                  Seja Patrocinador
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
-        
-        <div className="border-t border-zinc-800 mt-16 pt-8 text-center text-zinc-500 text-sm">
-          &copy; {new Date().getFullYear()} Formula SAE Team. Todos os direitos reservados.
+
+        {/* Bottom bar */}
+        <div className="py-7 flex flex-col md:flex-row items-center justify-between gap-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/18">
+            © {year} UFU Racing — Formula SAE · Universidade Federal de Uberlândia
+          </p>
+          <Link href="/admin">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/12 hover:text-white/30 transition-colors cursor-pointer">
+              Admin
+            </span>
+          </Link>
         </div>
+
       </div>
     </footer>
   );
