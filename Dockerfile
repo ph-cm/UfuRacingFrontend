@@ -7,7 +7,8 @@ RUN npm install
 
 COPY . .
 
-ENV NEXT_PUBLIC_API_URL=https://er0m49jkO3cOox5yq0ktahir.2.25.202.12.sslip.io
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 RUN npm run build
 
