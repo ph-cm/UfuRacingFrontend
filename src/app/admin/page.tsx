@@ -761,7 +761,19 @@ export default function AdminPage() {
 
             {/* DESTAQUES */}
             {activeTab === "destaques" && (() => {
-              const teams = Array.from(new Set(members.map((m) => m.team).filter(Boolean)));
+              const SUBAREAS = [
+                "Administrativo",
+                "Projetos",
+                "Drivetrain",
+                "Frame and Body",
+                "Freio e Ergonomia",
+                "Suspensão e Direção",
+                "Elétrica e Telemetria",
+                "Powertrain",
+              ];
+              // Merge hardcoded areas with any extra teams that exist in members
+              const memberTeams = members.map((m) => m.team).filter(Boolean);
+              const teams = Array.from(new Set([...SUBAREAS, ...memberTeams]));
               return (
                 <section className="lg:col-span-2 bg-white border border-gray-100 p-6">
                   <h2 className="text-xs font-black uppercase tracking-[0.12em] text-navy mb-6">
