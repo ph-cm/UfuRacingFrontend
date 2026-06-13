@@ -323,7 +323,7 @@ export async function deleteMember(id: number): Promise<void> {
     throw new Error(txt || "Erro ao remover membro");
   }
 }
-export async function createNews(data: {
+export type NewsPayload = {
   title: string;
   summary: string;
   content: string;
@@ -331,13 +331,37 @@ export async function createNews(data: {
   author?: string | null;
   category?: string | null;
   published?: boolean;
-}): Promise<NewsDetail> {
+};
+
+export async function createNews(data: NewsPayload): Promise<NewsDetail> {
   const res = await authFetch(`${API_URL}/news`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   return asJson<NewsDetail>(res);
+}
+
+export async function updateNews(id: number, data: Partial<NewsPayload>): Promise<NewsDetail> {
+  const res = await authFetch(`${API_URL}/news/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "Erro ao atualizar notícia");
+  }
+  const raw = await asJson<any>(res);
+  return normalizeNewsDetail(raw);
+}
+
+export async function deleteNews(id: number): Promise<void> {
+  const res = await authFetch(`${API_URL}/news/${id}`, { method: "DELETE" });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "Erro ao excluir notícia");
+  }
 }
 //
 // ADMIN DASHBOARD

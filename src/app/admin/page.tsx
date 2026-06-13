@@ -16,9 +16,13 @@ import {
   API_URL,
   setAdminToken,
   clearAdminToken,
+  getNews,
   createNews,
+  updateNews,
+  deleteNews,
   getAdminDashboard,
   updateSponsorContactStatus,
+  type NewsItem,
   type AdminDashboard as AdminDashboardDTO,
   type SponsorContact,
 } from "@/services/api";
@@ -124,6 +128,12 @@ export default function AdminPage() {
     photoUrl: "", email: "", linkedin: "", birthDate: "",
   });
 
+  // News list + edit
+  const [newsList, setNewsList]         = useState<NewsItem[]>([]);
+  const [newsLoading, setNewsLoading]   = useState(false);
+  const [editingNews, setEditingNews]   = useState<NewsItem | null>(null);
+  const [editNewsForm, setEditNewsForm] = useState({ title: "", summary: "", content: "", image: "" });
+
   // Edit member
   const [editingMember, setEditingMember] = useState(false);
   const [editForm, setEditForm] = useState<MemberForm>({
@@ -160,9 +170,22 @@ export default function AdminPage() {
   }, []);
 
   
+  const loadNewsList = useCallback(async () => {
+    setNewsLoading(true);
+    try {
+      const data = await getNews();
+      setNewsList(data);
+    } catch {
+      // silent
+    } finally {
+      setNewsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (activeTab === "home") void loadDashboard();
-  }, [activeTab, loadDashboard]);
+    if (activeTab === "noticias") void loadNewsList();
+  }, [activeTab, loadDashboard, loadNewsList]);
 
   const handleLogin = async () => {
     setLoginLoading(true);
@@ -523,58 +546,208 @@ export default function AdminPage() {
 
             {/* NOTÍCIAS */}
             {activeTab === "noticias" && (
-              <section className="lg:col-span-2 bg-white border border-gray-100 p-6">
-                <h2 className="text-xs font-black uppercase tracking-[0.12em] text-navy mb-6">Nova Matéria</h2>
-                <div className="space-y-4">
-                  <Field label="Título">
-                    <input
-                      className={inputCls}
-                      placeholder="Título da matéria"
-                      value={newsForm.title}
-                      onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value })}
-                    />
-                  </Field>
-                  <Field label="Resumo">
-                    <textarea
-                      className={`${inputCls} h-20 resize-none`}
-                      placeholder="Resumo curto para o card..."
-                      value={newsForm.summary}
-                      onChange={(e) => setNewsForm({ ...newsForm, summary: e.target.value })}
-                    />
-                  </Field>
-                  <Field label="Conteúdo completo">
-                    <textarea
-                      className={`${inputCls} h-52 resize-none`}
-                      placeholder="Conteúdo completo da matéria..."
-                      value={newsForm.content}
-                      onChange={(e) => setNewsForm({ ...newsForm, content: e.target.value })}
-                    />
-                  </Field>
-                  <Field label="Imagem (opcional)">
-                    <ImageUpload
-                      value={newsForm.image}
-                      onChange={(url) => setNewsForm({ ...newsForm, image: url })}
-                    />
-                  </Field>
-                  <button
-                    onClick={async () => {
-                      try {
-                        await createNews({
-                          title: newsForm.title, summary: newsForm.summary,
-                          content: newsForm.content, image: newsForm.image || null, published: true,
-                        });
-                        showToast("Matéria publicada com sucesso.");
-                        setNewsForm({ title: "", summary: "", content: "", image: "" });
-                      } catch {
-                        showToast("Erro ao publicar. Verifique o backend.", false);
-                      }
-                    }}
-                    className="w-full bg-crimson text-white font-black py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-red-700 transition-colors"
-                  >
-                    Publicar Matéria
-                  </button>
+              <div className="lg:col-span-2 space-y-5">
+                {/* Edit modal overlay */}
+                {editingNews && (
+                  <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 space-y-4 relative">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-black uppercase tracking-[0.12em] text-navy">Editar notícia</p>
+                        <button onClick={() => setEditingNews(null)} className="text-gray-300 hover:text-gray-500 transition-colors">
+                          <X size={16} />
+                        </button>
+                      </div>
+
+                      <Field label="Título">
+                        <input
+                          className={inputCls}
+                          value={editNewsForm.title}
+                          onChange={(e) => setEditNewsForm((p) => ({ ...p, title: e.target.value }))}
+                        />
+                      </Field>
+                      <Field label="Resumo">
+                        <textarea
+                          className={`${inputCls} h-20 resize-none`}
+                          value={editNewsForm.summary}
+                          onChange={(e) => setEditNewsForm((p) => ({ ...p, summary: e.target.value }))}
+                        />
+                      </Field>
+                      <Field label="Conteúdo completo">
+                        <textarea
+                          className={`${inputCls} h-52 resize-none`}
+                          value={editNewsForm.content}
+                          onChange={(e) => setEditNewsForm((p) => ({ ...p, content: e.target.value }))}
+                        />
+                      </Field>
+                      <Field label="Imagem">
+                        <ImageUpload
+                          value={editNewsForm.image}
+                          onChange={(url) => setEditNewsForm((p) => ({ ...p, image: url }))}
+                        />
+                      </Field>
+
+                      <button
+                        onClick={async () => {
+                          if (!editNewsForm.title.trim()) { showToast("Preencha o título.", false); return; }
+                          try {
+                            const updated = await updateNews(editingNews.id, {
+                              title:   editNewsForm.title,
+                              summary: editNewsForm.summary,
+                              content: editNewsForm.content,
+                              image:   editNewsForm.image || null,
+                            });
+                            setNewsList((prev) => prev.map((n) => n.id === updated.id ? updated : n));
+                            setEditingNews(null);
+                            showToast("Notícia atualizada.");
+                          } catch {
+                            showToast("Erro ao atualizar notícia.", false);
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-1.5 bg-navy text-white font-black py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-navy/80 transition-colors"
+                      >
+                        <Save size={11} /> Salvar alterações
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Create form */}
+                <div className="bg-white border border-gray-100 p-6">
+                  <h2 className="text-xs font-black uppercase tracking-[0.12em] text-navy mb-6">Nova Matéria</h2>
+                  <div className="space-y-4">
+                    <Field label="Título">
+                      <input
+                        className={inputCls}
+                        placeholder="Título da matéria"
+                        value={newsForm.title}
+                        onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Resumo">
+                      <textarea
+                        className={`${inputCls} h-20 resize-none`}
+                        placeholder="Resumo curto para o card..."
+                        value={newsForm.summary}
+                        onChange={(e) => setNewsForm({ ...newsForm, summary: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Conteúdo completo">
+                      <textarea
+                        className={`${inputCls} h-52 resize-none`}
+                        placeholder="Conteúdo completo da matéria..."
+                        value={newsForm.content}
+                        onChange={(e) => setNewsForm({ ...newsForm, content: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Imagem (opcional)">
+                      <ImageUpload
+                        value={newsForm.image}
+                        onChange={(url) => setNewsForm({ ...newsForm, image: url })}
+                      />
+                    </Field>
+                    <button
+                      onClick={async () => {
+                        if (!newsForm.title.trim()) { showToast("Preencha o título.", false); return; }
+                        try {
+                          const created = await createNews({
+                            title: newsForm.title, summary: newsForm.summary,
+                            content: newsForm.content, image: newsForm.image || null, published: true,
+                          });
+                          showToast("Matéria publicada com sucesso.");
+                          setNewsForm({ title: "", summary: "", content: "", image: "" });
+                          setNewsList((prev) => [created, ...prev]);
+                        } catch {
+                          showToast("Erro ao publicar. Verifique o backend.", false);
+                        }
+                      }}
+                      className="w-full bg-crimson text-white font-black py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-red-700 transition-colors"
+                    >
+                      Publicar Matéria
+                    </button>
+                  </div>
                 </div>
-              </section>
+
+                {/* News list */}
+                <div className="bg-white border border-gray-100 p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-xs font-black uppercase tracking-[0.12em] text-navy">Notícias Publicadas</h2>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-navy bg-navy/8 px-3 py-1">{newsList.length}</span>
+                      <button
+                        onClick={() => void loadNewsList()}
+                        disabled={newsLoading}
+                        className="text-[10px] font-black uppercase tracking-widest text-white bg-navy px-3 py-1.5 hover:bg-navy/80 transition-colors disabled:opacity-60 flex items-center gap-1"
+                      >
+                        <RefreshCw size={10} className={newsLoading ? "animate-spin" : ""} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {newsLoading ? (
+                    <div className="space-y-2 animate-pulse">
+                      {[1,2,3].map((i) => <div key={i} className="h-14 bg-gray-100" />)}
+                    </div>
+                  ) : newsList.length === 0 ? (
+                    <p className="text-sm text-gray-400 py-8 text-center border border-dashed border-gray-200">
+                      Nenhuma notícia publicada.
+                    </p>
+                  ) : (
+                    <div className="space-y-0.5 max-h-[28rem] overflow-y-auto">
+                      {newsList.map((n) => (
+                        <div key={n.id} className="flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors group">
+                          <div className="w-8 h-8 shrink-0 bg-gray-100 overflow-hidden">
+                            {n.image ? (
+                              <img src={n.image} alt={n.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="text-[9px] font-black text-gray-300">UFU</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-black text-navy truncate">{n.title}</p>
+                            <p className="text-[10px] text-gray-400">
+                              {new Date(n.created_at).toLocaleDateString("pt-BR")}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            <button
+                              onClick={async () => {
+                                setEditingNews(n);
+                                setEditNewsForm({ title: n.title, summary: n.summary, content: "", image: n.image ?? "" });
+                                try {
+                                  const full = await fetch(`${API_URL}/news/${n.id}`).then((r) => r.json());
+                                  setEditNewsForm({ title: n.title, summary: n.summary, content: full.content ?? "", image: n.image ?? "" });
+                                } catch { /* leave content empty */ }
+                              }}
+                              className="p-1.5 border border-gray-200 text-gray-400 hover:text-navy hover:border-navy/30 transition-colors"
+                              title="Editar"
+                            >
+                              <Pencil size={11} />
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm(`Excluir "${n.title}"?`)) return;
+                                try {
+                                  await deleteNews(n.id);
+                                  setNewsList((prev) => prev.filter((x) => x.id !== n.id));
+                                  showToast("Notícia excluída.");
+                                } catch {
+                                  showToast("Erro ao excluir notícia.", false);
+                                }
+                              }}
+                              className="p-1.5 border border-gray-200 text-gray-400 hover:text-crimson hover:border-crimson/30 transition-colors"
+                              title="Excluir"
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* DESTAQUES */}
