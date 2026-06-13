@@ -856,7 +856,14 @@ export default function AdminPage() {
                   </div>
 
                   <button
-                    onClick={() => { updateHighlight(highlightForm); showToast("Destaques atualizados."); }}
+                    onClick={async () => {
+                      try {
+                        await updateHighlight(highlightForm);
+                        showToast("Destaques atualizados.");
+                      } catch {
+                        showToast("Erro ao salvar destaques.", false);
+                      }
+                    }}
                     className="w-full mt-6 bg-navy text-white font-black py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-navy/80 transition-colors"
                   >
                     Salvar e Atualizar Home

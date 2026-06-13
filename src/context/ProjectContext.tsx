@@ -12,6 +12,7 @@ import {
   getSponsors,
   getNews,
   getHighlight,
+  saveHighlight,
   getMembers,
   createSponsor,
   deleteSponsor,
@@ -65,7 +66,7 @@ interface ProjectContextType {
   members: Member[];
   loading: boolean;
 
-  updateHighlight: (data: Highlight) => void;
+  updateHighlight: (data: Highlight) => Promise<void>;
   addNews: (item: NewsItem) => void;
   addSponsor: (item: { name: string; logoUrl: string }) => Promise<void>;
   removeSponsor: (id: number | string) => Promise<void>;
@@ -213,10 +214,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  const updateHighlight = (data: Highlight) => {
-    setHighlight(data);
+  const updateHighlight = async (data: Highlight) => {
+    const saved = await saveHighlight(data);
+    setHighlight(saved);
     try {
-      localStorage.setItem(LS_KEYS.highlight, JSON.stringify(data));
+      localStorage.setItem(LS_KEYS.highlight, JSON.stringify(saved));
     } catch {}
   };
 

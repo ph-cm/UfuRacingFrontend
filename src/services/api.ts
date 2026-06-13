@@ -235,6 +235,26 @@ export async function getHighlight(): Promise<Highlight> {
   return normalizeHighlight(data ?? {});
 }
 
+export async function saveHighlight(h: Highlight): Promise<Highlight> {
+  const res = await authFetch(`${API_URL}/highlight/`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      member_name:  h.memberName  ?? "",
+      member_role:  h.memberRole  ?? "",
+      member_photo: h.memberPhoto ?? null,
+      area_name:    h.areaName    ?? "",
+      area_desc:    h.areaDesc    ?? "",
+      area_photo:   h.areaPhoto   ?? null,
+    }),
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "Erro ao salvar destaque");
+  }
+  return normalizeHighlight(await asJson<any>(res));
+}
+
 //
 // SPONSOR CONTACT
 // Front envia { name, company, email, message } (igual você já tem)
