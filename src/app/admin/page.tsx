@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, Newspaper, Star, Building2, Users,
   LogOut, ArrowLeft, RefreshCw, X, Cake, ExternalLink,
-  Trash2, Plus, Check, AlertCircle,
+  Trash2, Plus, Check, AlertCircle, Pencil, Save,
 } from "lucide-react";
 import { useProject } from "@/context/ProjectContext";
 import type { Member } from "@/types/member";
@@ -93,7 +93,7 @@ export default function AdminPage() {
   const {
     highlight, updateHighlight,
     sponsors, addSponsor, removeSponsor,
-    members, addMember, removeMember,
+    members, addMember, updateMember, removeMember,
   } = useProject();
 
   // Auth
@@ -122,6 +122,12 @@ export default function AdminPage() {
   const [memberForm, setMemberForm] = useState<MemberForm>({
     name: "", role: "", team: "Aerodinâmica",
     photoUrl: "", email: "", linkedin: "", birthDate: "",
+  });
+
+  // Edit member
+  const [editingMember, setEditingMember] = useState(false);
+  const [editForm, setEditForm] = useState<MemberForm>({
+    name: "", role: "", team: "", photoUrl: "", email: "", linkedin: "", birthDate: "",
   });
 
   // Dashboard
@@ -796,7 +802,7 @@ export default function AdminPage() {
                         return (
                           <div
                             key={m.id}
-                            onClick={() => setSelectedMember(selected ? null : m)}
+                            onClick={() => { setSelectedMember(selected ? null : m); setEditingMember(false); }}
                             className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all border-l-2 ${
                               selected
                                 ? "border-crimson bg-crimson/4"
@@ -843,84 +849,164 @@ export default function AdminPage() {
                 }
               />
 
-              {/* Member detail */}
+              {/* Member detail / edit */}
               {activeTab === "membros" && selectedMember ? (
                 <div className="bg-white border border-gray-100 overflow-hidden">
-                  {selectedMember.photoUrl ? (
-                    <div className="h-36 overflow-hidden">
-                      <img src={selectedMember.photoUrl} alt={selectedMember.name} className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="h-20 bg-navy flex items-center justify-center">
-                      <span className="text-4xl font-black text-white/15">
-                        {selectedMember.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="p-5">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-black text-navy uppercase leading-tight truncate">
-                          {selectedMember.name}
-                        </h3>
-                        <p className="text-[10px] font-bold text-crimson uppercase tracking-wider mt-0.5">
-                          {selectedMember.role}
-                        </p>
+                  {editingMember ? (
+                    /* ── EDIT MODE ── */
+                    <div className="p-5 space-y-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-navy">Editar membro</p>
+                        <button onClick={() => setEditingMember(false)} className="text-gray-300 hover:text-gray-500 transition-colors">
+                          <X size={14} />
+                        </button>
                       </div>
+
+                      {memberFields.map((f) => (
+                        <Field key={f.key} label={f.label}>
+                          <input
+                            type={f.type ?? "text"}
+                            className={inputCls}
+                            value={editForm[f.key]}
+                            onChange={(e) => setEditForm((p) => ({ ...p, [f.key]: e.target.value }))}
+                          />
+                        </Field>
+                      ))}
+
+                      <Field label="Foto do membro">
+                        <ImageUpload
+                          value={editForm.photoUrl}
+                          onChange={(url) => setEditForm((p) => ({ ...p, photoUrl: url }))}
+                          aspectHint="square"
+                        />
+                      </Field>
+
                       <button
-                        onClick={() => setSelectedMember(null)}
-                        className="text-gray-300 hover:text-gray-500 transition-colors ml-2 shrink-0"
+                        onClick={async () => {
+                          if (!editForm.name.trim() || !editForm.role.trim() || !editForm.team.trim()) {
+                            showToast("Preencha Nome, Cargo e Sub-área.", false);
+                            return;
+                          }
+                          try {
+                            await updateMember(selectedMember.id, {
+                              name:      editForm.name.trim(),
+                              role:      editForm.role.trim(),
+                              team:      editForm.team.trim(),
+                              photoUrl:  editForm.photoUrl.trim()  || undefined,
+                              email:     editForm.email.trim()     || undefined,
+                              linkedin:  editForm.linkedin.trim()  || undefined,
+                              birthDate: editForm.birthDate.trim() || undefined,
+                            });
+                            setSelectedMember(null);
+                            setEditingMember(false);
+                            showToast("Membro atualizado com sucesso.");
+                          } catch {
+                            showToast("Erro ao atualizar membro.", false);
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-1.5 bg-navy text-white font-black py-2.5 text-[11px] uppercase tracking-[0.15em] hover:bg-navy/80 transition-colors"
                       >
-                        <X size={14} />
+                        <Save size={11} /> Salvar alterações
                       </button>
                     </div>
-
-                    <div className="space-y-2">
-                      <InfoRow label="Sub-área">{selectedMember.team}</InfoRow>
-                      {selectedMember.email && (
-                        <InfoRow label="E-mail">
-                          <span className="break-all">{selectedMember.email}</span>
-                        </InfoRow>
-                      )}
-                      {selectedMember.birthDate && (
-                        <InfoRow label="Aniversário">
-                          <span className="flex items-center gap-1.5">
-                            <Cake size={11} className="text-gold" />
-                            {new Date(selectedMember.birthDate + "T12:00:00").toLocaleDateString("pt-BR", {
-                              day: "2-digit", month: "long",
-                            })}
+                  ) : (
+                    /* ── VIEW MODE ── */
+                    <>
+                      {selectedMember.photoUrl ? (
+                        <div className="h-36 overflow-hidden">
+                          <img src={selectedMember.photoUrl} alt={selectedMember.name} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-20 bg-navy flex items-center justify-center">
+                          <span className="text-4xl font-black text-white/15">
+                            {selectedMember.name.charAt(0)}
                           </span>
-                        </InfoRow>
+                        </div>
                       )}
-                    </div>
 
-                    {selectedMember.linkedin && (
-                      <a
-                        href={selectedMember.linkedin}
-                        target="_blank" rel="noreferrer"
-                        className="mt-4 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-navy border border-navy/20 py-2 hover:bg-navy hover:text-white transition-all"
-                      >
-                        <ExternalLink size={11} /> LinkedIn
-                      </a>
-                    )}
+                      <div className="p-5">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-black text-navy uppercase leading-tight truncate">
+                              {selectedMember.name}
+                            </h3>
+                            <p className="text-[10px] font-bold text-crimson uppercase tracking-wider mt-0.5">
+                              {selectedMember.role}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setSelectedMember(null)}
+                            className="text-gray-300 hover:text-gray-500 transition-colors ml-2 shrink-0"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
 
-                    <button
-                      onClick={async () => {
-                        if (!confirm(`Excluir ${selectedMember.name}?`)) return;
-                        try {
-                          await removeMember(selectedMember.id);
-                          setSelectedMember(null);
-                          showToast("Membro removido.");
-                        } catch {
-                          showToast("Erro ao remover membro.", false);
-                        }
-                      }}
-                      className="w-full mt-2 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-crimson border border-gray-100 hover:border-crimson/30 py-2 transition-all"
-                    >
-                      <Trash2 size={11} /> Excluir membro
-                    </button>
-                  </div>
+                        <div className="space-y-2">
+                          <InfoRow label="Sub-área">{selectedMember.team}</InfoRow>
+                          {selectedMember.email && (
+                            <InfoRow label="E-mail">
+                              <span className="break-all">{selectedMember.email}</span>
+                            </InfoRow>
+                          )}
+                          {selectedMember.birthDate && (
+                            <InfoRow label="Aniversário">
+                              <span className="flex items-center gap-1.5">
+                                <Cake size={11} className="text-gold" />
+                                {new Date(selectedMember.birthDate + "T12:00:00").toLocaleDateString("pt-BR", {
+                                  day: "2-digit", month: "long",
+                                })}
+                              </span>
+                            </InfoRow>
+                          )}
+                        </div>
+
+                        {selectedMember.linkedin && (
+                          <a
+                            href={selectedMember.linkedin}
+                            target="_blank" rel="noreferrer"
+                            className="mt-4 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-navy border border-navy/20 py-2 hover:bg-navy hover:text-white transition-all"
+                          >
+                            <ExternalLink size={11} /> LinkedIn
+                          </a>
+                        )}
+
+                        <button
+                          onClick={() => {
+                            setEditForm({
+                              name:      selectedMember.name,
+                              role:      selectedMember.role,
+                              team:      selectedMember.team,
+                              photoUrl:  selectedMember.photoUrl  ?? "",
+                              email:     selectedMember.email     ?? "",
+                              linkedin:  selectedMember.linkedin  ?? "",
+                              birthDate: selectedMember.birthDate ?? "",
+                            });
+                            setEditingMember(true);
+                          }}
+                          className="w-full mt-3 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-navy border border-navy/20 hover:bg-navy hover:text-white py-2 transition-all"
+                        >
+                          <Pencil size={11} /> Editar perfil
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Excluir ${selectedMember.name}?`)) return;
+                            try {
+                              await removeMember(selectedMember.id);
+                              setSelectedMember(null);
+                              showToast("Membro removido.");
+                            } catch {
+                              showToast("Erro ao remover membro.", false);
+                            }
+                          }}
+                          className="w-full mt-2 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-crimson border border-gray-100 hover:border-crimson/30 py-2 transition-all"
+                        >
+                          <Trash2 size={11} /> Excluir membro
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="bg-navy p-6">

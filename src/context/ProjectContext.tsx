@@ -14,6 +14,7 @@ import {
   getHighlight,
   getMembers,
   createMember,
+  updateMember,
   deleteMember,
   type MemberDTO,
 } from "@/services/api";
@@ -68,6 +69,7 @@ interface ProjectContextType {
   removeSponsor: (id: number | string) => void;
 
   addMember: (member: Omit<Member, "id">) => Promise<void>;
+  updateMember: (id: number, member: Omit<Member, "id">) => Promise<void>;
   removeMember: (id: number) => Promise<void>;
   reloadMembers: () => Promise<void>;
 }
@@ -253,6 +255,12 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     setMembers((prev) => [memberFromDTO(created), ...prev]);
   };
 
+  const updateMemberFn = async (id: number, member: Omit<Member, "id">) => {
+    const payload = memberToCreateDTO(member);
+    const updated: MemberDTO = await updateMember(id, payload);
+    setMembers((prev) => prev.map((m) => (m.id === id ? memberFromDTO(updated) : m)));
+  };
+
   // ✅ agora remove no backend
   const removeMember = async (id: number) => {
     await deleteMember(id);
@@ -272,6 +280,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         addSponsor,
         removeSponsor,
         addMember,
+        updateMember: updateMemberFn,
         removeMember,
         reloadMembers,
       }}

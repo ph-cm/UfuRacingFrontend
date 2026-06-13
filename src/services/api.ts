@@ -300,6 +300,22 @@ export async function createMember(data: CreateMemberDTO): Promise<MemberDTO> {
   return normalizeMember(created);
 }
 
+export async function updateMember(id: number, data: Partial<CreateMemberDTO>): Promise<MemberDTO> {
+  const res = await authFetch(`${API_URL}/members/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "Erro ao atualizar membro");
+  }
+
+  const updated = await asJson<any>(res);
+  return normalizeMember(updated);
+}
+
 export async function deleteMember(id: number): Promise<void> {
   const res = await authFetch(`${API_URL}/members/${encodeURIComponent(id)}`, { method: "DELETE" });
   if (!res.ok) {
