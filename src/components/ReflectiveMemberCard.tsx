@@ -27,7 +27,7 @@ export default function ReflectiveMemberCard({ member }: { member: Member }) {
       }`}
     >
       {/* Photo */}
-      <div className="aspect-4/5 overflow-hidden bg-gray-100 relative">
+      <div className="aspect-square overflow-hidden bg-gray-100 relative">
         {member.photoUrl && !imgFailed ? (
           <img
             src={member.photoUrl}
