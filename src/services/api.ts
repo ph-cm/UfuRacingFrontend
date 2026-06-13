@@ -348,7 +348,7 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
   const fd = new FormData();
   fd.append("file", file);
 
-  const res = await fetch(`${API_URL}/upload`, {
+  const res = await authFetch(`${API_URL}/upload`, {
     method: "POST",
     body: fd,
   });
