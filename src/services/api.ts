@@ -277,7 +277,13 @@ export async function createSponsorContact(data: {
   const res = await fetch(`${API_URL}/contact/sponsor`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      responsible_name: data.name,
+      company_name: data.company,
+      email: data.email,
+      message: data.message,
+      phone: data.phone,
+    }),
   });
 
   const created = await asJson<any>(res);
@@ -290,7 +296,7 @@ export async function updateSponsorContactStatus(
   id: number,
   status: SponsorContactStatus
 ): Promise<SponsorContact> {
-  const res = await authFetch(`${API_URL}/contact/sponsor/${id}/status`, {
+  const res = await authFetch(`${API_URL}/contact/sponsor/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status }),
