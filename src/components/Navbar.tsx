@@ -13,9 +13,9 @@ const navLinks = [
 ];
 
 const socialLinks = [
-  { label: "Instagram", icon: Instagram, href: "#" },
-  { label: "LinkedIn",  icon: Linkedin,  href: "#" },
-  { label: "YouTube",   icon: Youtube,   href: "#" },
+  { label: "Instagram", icon: Instagram, href: "https://www.instagram.com/ufuracing?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" },
+  { label: "LinkedIn",  icon: Linkedin,  href: "https://www.linkedin.com/company/ufuracing" },
+  { label: "YouTube",   icon: Youtube,   href: "https://youtube.com/@ufuracing5244?si=K2uxfxezXN1F8QnK" },
 ];
 
 export default function Navbar() {
