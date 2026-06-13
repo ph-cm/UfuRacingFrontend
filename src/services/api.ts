@@ -369,5 +369,9 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
     body: fd,
   });
 
-  return asJson<{ url: string }>(res);
+  const data = await asJson<{ url: string }>(res);
+  // Replace whatever origin the backend returned with the known public API_URL.
+  // This fixes the case where the backend runs behind a proxy and returns http://127.0.0.1:8000/...
+  const fixedUrl = data.url.replace(/^https?:\/\/[^/]+/, API_URL.replace(/\/$/, ""));
+  return { url: fixedUrl };
 }
