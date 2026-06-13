@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Mail, Linkedin, Cake } from "lucide-react";
 import type { Member } from "@/types/member";
 
@@ -15,6 +16,7 @@ function isBirthday(birthDate?: string | null): boolean {
 export default function ReflectiveMemberCard({ member }: { member: Member }) {
   const birthday = isBirthday(member.birthDate);
   const hasLinks = member.email || member.linkedin;
+  const [imgFailed, setImgFailed] = useState(false);
 
   return (
     <div
@@ -26,12 +28,13 @@ export default function ReflectiveMemberCard({ member }: { member: Member }) {
     >
       {/* Photo */}
       <div className="aspect-4/5 overflow-hidden bg-gray-100 relative">
-        {member.photoUrl ? (
+        {member.photoUrl && !imgFailed ? (
           <img
             src={member.photoUrl}
             alt={member.name}
             className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-[1.03]"
             loading="lazy"
+            onError={() => setImgFailed(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-navy/6">
