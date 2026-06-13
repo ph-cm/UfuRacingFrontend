@@ -15,15 +15,21 @@ export function clearAdminToken() {
   if (typeof window !== "undefined") localStorage.removeItem(ADMIN_TOKEN_KEY);
 }
 
-function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const token = getAdminToken();
-  return fetch(url, {
+  const res = await fetch(url, {
     ...options,
     headers: {
       ...options.headers,
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
+  if (res.status === 401) {
+    clearAdminToken();
+    // Force page reload so admin login wall shows
+    if (typeof window !== "undefined") window.location.reload();
+  }
+  return res;
 }
 
 //
