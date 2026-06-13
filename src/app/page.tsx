@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Wind, Box, Gauge, Cpu, Settings, BarChart2,
+  Wind, Box, Gauge, Cpu, Settings, BarChart2, Zap, Wrench,
   ArrowRight, ChevronDown, ArrowUpRight,
 } from "lucide-react";
 import { useProject } from "@/context/ProjectContext";
@@ -33,47 +33,83 @@ interface Area {
 
 const areas: Area[] = [
   {
-    id: "aero",
-    icon: <Wind size={16} strokeWidth={2} />,
-    title: "Aerodinâmica",
-    headline: "Máxima aderência em alta velocidade.",
-    desc: "O sistema aerodinâmico maximiza o downforce do protótipo, permitindo maior velocidade em curvas através de geometrias otimizadas via CFD (ANSYS Fluent).",
+    id: "administrativo",
+    icon: <BarChart2 size={16} strokeWidth={2} />,
+    title: "Administrativo",
+    headline: "Engenharia de negócios e viabilidade.",
+    desc: "Conecta a engenharia ao mercado, garantindo parcerias estratégicas, controle financeiro e gestão de cronograma para a temporada competitiva.",
     details: [
-      { title: "Perfis de Asa", info: "Perfis selig otimizados para alta sustentação negativa com múltiplos elementos." },
-      { title: "Sistema DRS",   info: "Redução ativa de arrasto para ganho de velocidade em retas longas." },
-      { title: "Validação CFD", info: "Correlação entre simulação ANSYS e testes de pista para calibração." },
+      { title: "Marketing",  info: "Gestão de marca, redes sociais e apresentação de ROI a patrocinadores." },
+      { title: "Financeiro", info: "Controle de fluxo de caixa, custos de fabricação e prestação de contas." },
+      { title: "Eventos",    info: "Organização de lançamentos, processos seletivos e visitas técnicas." },
     ],
   },
   {
-    id: "chassi",
+    id: "projetos",
     icon: <Box size={16} strokeWidth={2} />,
-    title: "Chassi",
-    headline: "Segurança, leveza e rigidez torcional.",
-    desc: "Garante integridade estrutural e segurança do piloto, oferecendo a rigidez necessária para os pontos de fixação de suspensão e demais subsistemas.",
+    title: "Projetos",
+    headline: "Visão sistêmica e integração técnica.",
+    desc: "Coordena o desenvolvimento global do protótipo, integrando todas as sub-áreas técnicas e garantindo que o veículo atenda aos requisitos da competição.",
     details: [
-      { title: "Estrutura Tubular", info: "Treliça em aço SAE 1020 otimizada por análise de elementos finitos." },
-      { title: "Ergonomia",         info: "Cockpit projetado para mínima fadiga e resposta rápida do piloto." },
-      { title: "Integração",        info: "Pontos de fixação co-projetados com suspensão, powertrain e aero." },
+      { title: "Gestão Técnica", info: "Acompanhamento de cronograma, metas e indicadores de cada sub-área." },
+      { title: "Integração",     info: "Compatibilidade dimensional e funcional entre todos os sistemas do veículo." },
+      { title: "Documentação",   info: "Design Report e relatórios técnicos para as provas estáticas da FSAE." },
     ],
   },
   {
-    id: "dinamica",
-    icon: <Gauge size={16} strokeWidth={2} />,
-    title: "Dinâmica Veicular",
-    headline: "Traduzindo potência em movimento controlado.",
-    desc: "Define a assinatura de pilotagem do carro através de setup calibrado de suspensão, direção e freios, otimizado para cada disciplina da competição.",
+    id: "drivetrain",
+    icon: <Settings size={16} strokeWidth={2} />,
+    title: "Drivetrain",
+    headline: "Transmitindo potência com eficiência.",
+    desc: "Responsável pelo sistema de transmissão do protótipo, incluindo diferencial, semi-eixos, cubos e a seleção de relações para cada perfil de prova.",
     details: [
-      { title: "Suspensão",         info: "Geometria Duplo-A com amortecedores ajustáveis e anti-roll configurável." },
-      { title: "Sistema de Freios", info: "Hidráulico com balanço de frenagem dianteiro/traseiro ajustável." },
-      { title: "Direção",           info: "Geometria de Ackermann precisa para resposta imediata em curvas." },
+      { title: "Transmissão",  info: "Coroa e pinhão selecionados para maximizar aceleração saindo das curvas." },
+      { title: "Diferencial",  info: "Diferencial de deslizamento limitado para tração equilibrada em curvas." },
+      { title: "Semi-eixos",   info: "Eixos em aço de alta resistência com juntas homocinéticas customizadas." },
+    ],
+  },
+  {
+    id: "frame",
+    icon: <Wrench size={16} strokeWidth={2} />,
+    title: "Frame and Body",
+    headline: "Segurança, leveza e rigidez torcional.",
+    desc: "Projeta e fabrica o chassi tubular e a carroceria do protótipo, garantindo integridade estrutural, segurança do piloto e aerodinâmica de baixo arrasto.",
+    details: [
+      { title: "Chassi Tubular", info: "Treliça em aço SAE 1020 otimizada por análise de elementos finitos." },
+      { title: "Carroceria",     info: "Painéis em fibra de vidro e carbono para redução de peso e arrasto." },
+      { title: "Ergonomia",      info: "Cockpit projetado para mínima fadiga e resposta rápida do piloto." },
+    ],
+  },
+  {
+    id: "freio",
+    icon: <Gauge size={16} strokeWidth={2} />,
+    title: "Freio e Ergonomia",
+    headline: "Frenagem precisa e conforto operacional.",
+    desc: "Desenvolve o sistema de freios hidráulico e todos os componentes de interface piloto-veículo, priorizando segurança, desempenho e adaptabilidade.",
+    details: [
+      { title: "Sistema de Freios", info: "Hidráulico com balanço de frenagem dianteiro/traseiro ajustável em pista." },
+      { title: "Pedais e Pedaleira", info: "Estrutura ajustável em alumínio para diferentes tamanhos de piloto." },
+      { title: "Volante e Harness",  info: "Volante quick-release e sistema de retenção aprovado pela FSAE." },
+    ],
+  },
+  {
+    id: "suspensao",
+    icon: <Wind size={16} strokeWidth={2} />,
+    title: "Suspensão e Direção",
+    headline: "Dinâmica veicular controlada e precisa.",
+    desc: "Define a geometria de suspensão e direção do protótipo, calibrando o setup para cada disciplina da competição e maximizando o contato dos pneus com o solo.",
+    details: [
+      { title: "Suspensão",  info: "Geometria Duplo-A com amortecedores ajustáveis e barra anti-roll configurável." },
+      { title: "Direção",    info: "Geometria de Ackermann precisa para resposta imediata em curvas fechadas." },
+      { title: "Alinhamento", info: "Configuração de camber, caster e convergência otimizados por telemetria." },
     ],
   },
   {
     id: "eletrica",
     icon: <Cpu size={16} strokeWidth={2} />,
-    title: "Eletrônica",
+    title: "Elétrica e Telemetria",
     headline: "O sistema nervoso digital do protótipo.",
-    desc: "Monitora a saúde do veículo e transforma dados de sensores em estratégias de corrida em tempo real, com telemetria wireless para o box.",
+    desc: "Monitora a saúde do veículo em tempo real e transforma dados de sensores em estratégias de corrida, com telemetria wireless para análise no box.",
     details: [
       { title: "Sensoriamento", info: "+30 sensores monitorando temperatura, pressão, aceleração e dinâmica." },
       { title: "ECU",           info: "FuelTech FT550 programável com mapas de injeção e ignição." },
@@ -82,26 +118,14 @@ const areas: Area[] = [
   },
   {
     id: "powertrain",
-    icon: <Settings size={16} strokeWidth={2} />,
+    icon: <Zap size={16} strokeWidth={2} />,
     title: "Powertrain",
     headline: "Torque linear e confiabilidade máxima.",
-    desc: "Otimiza o motor para entrega de torque em baixas rotações e resposta rápida do acelerador, com admissão e exaustão totalmente customizadas.",
+    desc: "Otimiza o motor para entrega de torque em baixas rotações e resposta rápida do acelerador, com admissão e exaustão totalmente customizadas para a FSAE.",
     details: [
-      { title: "Motor",        info: "KTM 450 EXC-R monocilíndrico com admissão restricta conforme SAE." },
-      { title: "Plenum",       info: "Duto de admissão em fibra de carbono produzido por impressão 3D." },
-      { title: "Transmissão",  info: "Coroa e pinhão selecionados para maximizar aceleração saindo das curvas." },
-    ],
-  },
-  {
-    id: "gestao",
-    icon: <BarChart2 size={16} strokeWidth={2} />,
-    title: "Gestão",
-    headline: "Engenharia de negócios e viabilidade.",
-    desc: "Conecta a engenharia ao mercado, garantindo parcerias estratégicas, controle financeiro e gestão de cronograma para a temporada competitiva.",
-    details: [
-      { title: "Marketing",  info: "Gestão de marca, redes sociais e apresentação de ROI a patrocinadores." },
-      { title: "Financeiro", info: "Controle de fluxo de caixa, custos de fabricação e prestação de contas." },
-      { title: "Eventos",    info: "Organização de lançamentos, processos seletivos e visitas técnicas." },
+      { title: "Motor",     info: "KTM 450 EXC-R monocilíndrico com admissão restricta conforme SAE." },
+      { title: "Plenum",    info: "Duto de admissão em fibra de carbono produzido por impressão 3D." },
+      { title: "Exaustão",  info: "Coletor customizado para maximizar torque na faixa de rotação de uso." },
     ],
   },
 ];
@@ -116,7 +140,7 @@ const competitions = [
 const stats = [
   { value: "10+", label: "Anos de Competição" },
   { value: "40+", label: "Membros Ativos"     },
-  { value: "6",   label: "Áreas Técnicas"     },
+  { value: "8",   label: "Áreas Técnicas"     },
   { value: "32°", label: "Geral FSAE Brasil"  },
 ];
 
