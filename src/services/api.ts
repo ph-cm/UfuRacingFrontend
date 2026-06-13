@@ -1,5 +1,30 @@
 // src/services/api.ts
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
+const ADMIN_TOKEN_KEY = "@ufuracing-admin-token";
+
+export function getAdminToken(): string | null {
+  return typeof window !== "undefined" ? localStorage.getItem(ADMIN_TOKEN_KEY) : null;
+}
+
+export function setAdminToken(token: string) {
+  if (typeof window !== "undefined") localStorage.setItem(ADMIN_TOKEN_KEY, token);
+}
+
+export function clearAdminToken() {
+  if (typeof window !== "undefined") localStorage.removeItem(ADMIN_TOKEN_KEY);
+}
+
+function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = getAdminToken();
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+}
 
 //
 // TYPES (Front-friendly)
@@ -238,7 +263,7 @@ export async function updateSponsorContactStatus(
   id: number,
   status: SponsorContactStatus
 ): Promise<SponsorContact> {
-  const res = await fetch(`${API_URL}/contact/sponsor/${id}/status`, {
+  const res = await authFetch(`${API_URL}/contact/sponsor/${id}/status`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status }),
@@ -260,12 +285,12 @@ export async function getMembers(): Promise<MemberDTO[]> {
 export type CreateMemberDTO = Omit<MemberDTO, "id">;
 
 export async function createMember(data: CreateMemberDTO): Promise<MemberDTO> {
-  const res = await fetch(`${API_URL}/members`, {
+  const res = await authFetch(`${API_URL}/members`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data), // ✅ sem id
+    body: JSON.stringify(data),
   });
-  
+
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(txt || "Erro ao criar membro");
@@ -276,7 +301,7 @@ export async function createMember(data: CreateMemberDTO): Promise<MemberDTO> {
 }
 
 export async function deleteMember(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/members/${encodeURIComponent(id)}`, { method: "DELETE" });
+  const res = await authFetch(`${API_URL}/members/${encodeURIComponent(id)}`, { method: "DELETE" });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(txt || "Erro ao remover membro");
@@ -291,7 +316,7 @@ export async function createNews(data: {
   category?: string | null;
   published?: boolean;
 }): Promise<NewsDetail> {
-  const res = await fetch(`${API_URL}/news`, {
+  const res = await authFetch(`${API_URL}/news`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -302,7 +327,7 @@ export async function createNews(data: {
 // ADMIN DASHBOARD
 //
 export async function getAdminDashboard(): Promise<AdminDashboard> {
-  const res = await fetch(`${API_URL}/admin/dashboard`, { cache: "no-store" });
+  const res = await authFetch(`${API_URL}/admin/dashboard`);
   const data = await asJson<any>(res);
 
   return {

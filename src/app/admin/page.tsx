@@ -12,17 +12,15 @@ import { useProject } from "@/context/ProjectContext";
 import type { Member } from "@/types/member";
 import AdminCalendar from "@/components/AdminCalendar";
 import {
+  API_URL,
+  setAdminToken,
+  clearAdminToken,
   createNews,
   getAdminDashboard,
   updateSponsorContactStatus,
   type AdminDashboard as AdminDashboardDTO,
   type SponsorContact,
 } from "@/services/api";
-
-// ── Auth ──────────────────────────────────────────────────────────
-const VALID_USERS = [
-  { email: "admin@ufuracing.com", pass: "admin", name: "Admin Geral", role: "Diretoria" },
-];
 
 // ── Types ─────────────────────────────────────────────────────────
 type MemberForm = {
@@ -98,10 +96,11 @@ export default function AdminPage() {
   } = useProject();
 
   // Auth
-  const [currentUser, setCurrentUser] = useState<typeof VALID_USERS[0] | null>(null);
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ email: string; name: string; role: string } | null>(null);
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [loginError, setLoginError]   = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   // Navigation
   const [activeTab, setActiveTab]       = useState<TabId>("home");
@@ -158,10 +157,25 @@ export default function AdminPage() {
     if (activeTab === "home") void loadDashboard();
   }, [activeTab, loadDashboard]);
 
-  const handleLogin = () => {
-    const u = VALID_USERS.find((u) => u.email === email && u.pass === password);
-    if (u) { setCurrentUser(u); setLoginError(false); }
-    else setLoginError(true);
+  const handleLogin = async () => {
+    setLoginLoading(true);
+    setLoginError(false);
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) { setLoginError(true); return; }
+      const data = await res.json();
+      if (data.role !== "admin") { setLoginError(true); return; }
+      setAdminToken(data.access_token);
+      setCurrentUser({ email, name: email.split("@")[0] ?? "Admin", role: "Admin" });
+    } catch {
+      setLoginError(true);
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   const handleAddMember = async () => {
@@ -240,7 +254,7 @@ export default function AdminPage() {
                 placeholder="admin@ufuracing.com"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setLoginError(false); }}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                onKeyDown={(e) => { if (e.key === "Enter") void handleLogin(); }}
               />
             </Field>
             <Field label="Senha">
@@ -251,7 +265,7 @@ export default function AdminPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setLoginError(false); }}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                onKeyDown={(e) => { if (e.key === "Enter") void handleLogin(); }}
               />
             </Field>
 
@@ -262,10 +276,11 @@ export default function AdminPage() {
             )}
 
             <button
-              onClick={handleLogin}
-              className="w-full bg-crimson text-white font-black py-3 text-[11px] uppercase tracking-[0.18em] hover:bg-red-700 transition-colors mt-1"
+              onClick={() => void handleLogin()}
+              disabled={loginLoading}
+              className="w-full bg-crimson text-white font-black py-3 text-[11px] uppercase tracking-[0.18em] hover:bg-red-700 transition-colors mt-1 disabled:opacity-50"
             >
-              Entrar
+              {loginLoading ? "Entrando..." : "Entrar"}
             </button>
           </div>
         </div>
@@ -345,7 +360,7 @@ export default function AdminPage() {
             </p>
           </div>
           <button
-            onClick={() => setCurrentUser(null)}
+            onClick={() => { clearAdminToken(); setCurrentUser(null); }}
             className="text-white/25 hover:text-white/60 transition-colors ml-3 p-1 shrink-0"
             title="Sair"
           >
