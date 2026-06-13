@@ -13,6 +13,8 @@ import {
   getNews,
   getHighlight,
   getMembers,
+  createSponsor,
+  deleteSponsor,
   createMember,
   updateMember,
   deleteMember,
@@ -65,8 +67,8 @@ interface ProjectContextType {
 
   updateHighlight: (data: Highlight) => void;
   addNews: (item: NewsItem) => void;
-  addSponsor: (item: Sponsor) => void;
-  removeSponsor: (id: number | string) => void;
+  addSponsor: (item: { name: string; logoUrl: string }) => Promise<void>;
+  removeSponsor: (id: number | string) => Promise<void>;
 
   addMember: (member: Omit<Member, "id">) => Promise<void>;
   updateMember: (id: number, member: Omit<Member, "id">) => Promise<void>;
@@ -228,22 +230,21 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const addSponsor = (item: Sponsor) => {
+  const addSponsor = async (item: { name: string; logoUrl: string }) => {
+    const created = await createSponsor({ name: item.name, logo_url: item.logoUrl || null });
+    const sponsor: Sponsor = { id: created.id, name: created.name, logoUrl: created.logo_url ?? "" };
     setSponsors((prev) => {
-      const next = [...prev, item];
-      try {
-        localStorage.setItem(LS_KEYS.sponsors, JSON.stringify(next));
-      } catch {}
+      const next = [...prev, sponsor];
+      try { localStorage.setItem(LS_KEYS.sponsors, JSON.stringify(next)); } catch {}
       return next;
     });
   };
 
-  const removeSponsor = (id: number | string) => {
+  const removeSponsor = async (id: number | string) => {
+    await deleteSponsor(Number(id));
     setSponsors((prev) => {
       const next = prev.filter((s) => String(s.id) !== String(id));
-      try {
-        localStorage.setItem(LS_KEYS.sponsors, JSON.stringify(next));
-      } catch {}
+      try { localStorage.setItem(LS_KEYS.sponsors, JSON.stringify(next)); } catch {}
       return next;
     });
   };

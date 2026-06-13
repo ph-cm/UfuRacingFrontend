@@ -274,6 +274,30 @@ export async function updateSponsorContactStatus(
 }
 
 //
+// SPONSORS
+//
+export async function createSponsor(data: { name: string; logo_url?: string | null; website?: string | null }): Promise<SponsorItem> {
+  const res = await authFetch(`${API_URL}/sponsors`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "Erro ao criar patrocinador");
+  }
+  return normalizeSponsor(await asJson<any>(res));
+}
+
+export async function deleteSponsor(id: number): Promise<void> {
+  const res = await authFetch(`${API_URL}/sponsors/${id}`, { method: "DELETE" });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "Erro ao remover patrocinador");
+  }
+}
+
+//
 // MEMBERS
 //
 export async function getMembers(): Promise<MemberDTO[]> {

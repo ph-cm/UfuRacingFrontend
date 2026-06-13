@@ -751,72 +751,119 @@ export default function AdminPage() {
             )}
 
             {/* DESTAQUES */}
-            {activeTab === "destaques" && (
-              <section className="lg:col-span-2 bg-white border border-gray-100 p-6">
-                <h2 className="text-xs font-black uppercase tracking-[0.12em] text-navy mb-6">
-                  Destaques da Home
-                </h2>
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-crimson">
-                      Membro do Mês
-                    </p>
-                    {([
-                      { label: "Nome",  key: "memberName" },
-                      { label: "Cargo", key: "memberRole" },
-                    ] as const).map((f) => (
-                      <Field key={f.key} label={f.label}>
+            {activeTab === "destaques" && (() => {
+              const teams = Array.from(new Set(members.map((m) => m.team).filter(Boolean)));
+              return (
+                <section className="lg:col-span-2 bg-white border border-gray-100 p-6">
+                  <h2 className="text-xs font-black uppercase tracking-[0.12em] text-navy mb-6">
+                    Destaques da Home
+                  </h2>
+                  <div className="grid md:grid-cols-2 gap-8">
+
+                    {/* Membro do Mês */}
+                    <div className="space-y-4">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-crimson">
+                        Membro do Mês
+                      </p>
+
+                      <Field label="Selecionar membro">
+                        <select
+                          className={inputCls}
+                          value={highlightForm?.memberName || ""}
+                          onChange={(e) => {
+                            const m = members.find((x) => x.name === e.target.value);
+                            if (m) {
+                              setHighlightForm({
+                                ...highlightForm,
+                                memberName:  m.name,
+                                memberRole:  m.role,
+                                memberPhoto: m.photoUrl || highlightForm?.memberPhoto || "",
+                              });
+                            }
+                          }}
+                        >
+                          <option value="">— escolha um membro —</option>
+                          {members.map((m) => (
+                            <option key={m.id} value={m.name}>{m.name} · {m.role}</option>
+                          ))}
+                        </select>
+                      </Field>
+
+                      <Field label="Nome">
                         <input
                           className={inputCls}
-                          value={(highlightForm as any)?.[f.key] || ""}
-                          onChange={(e) => setHighlightForm({ ...highlightForm, [f.key]: e.target.value })}
+                          value={highlightForm?.memberName || ""}
+                          onChange={(e) => setHighlightForm({ ...highlightForm, memberName: e.target.value })}
                         />
                       </Field>
-                    ))}
-                    <Field label="Foto do membro">
-                      <ImageUpload
-                        value={highlightForm?.memberPhoto || ""}
-                        onChange={(url) => setHighlightForm({ ...highlightForm, memberPhoto: url })}
-                        aspectHint="square"
-                      />
-                    </Field>
+                      <Field label="Cargo">
+                        <input
+                          className={inputCls}
+                          value={highlightForm?.memberRole || ""}
+                          onChange={(e) => setHighlightForm({ ...highlightForm, memberRole: e.target.value })}
+                        />
+                      </Field>
+                      <Field label="Foto">
+                        <ImageUpload
+                          value={highlightForm?.memberPhoto || ""}
+                          onChange={(url) => setHighlightForm({ ...highlightForm, memberPhoto: url })}
+                          aspectHint="square"
+                        />
+                      </Field>
+                    </div>
+
+                    {/* Área em Foco */}
+                    <div className="space-y-4">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gold">
+                        Área em Foco
+                      </p>
+
+                      <Field label="Selecionar sub-área">
+                        <select
+                          className={inputCls}
+                          value={highlightForm?.areaName || ""}
+                          onChange={(e) => setHighlightForm({ ...highlightForm, areaName: e.target.value })}
+                        >
+                          <option value="">— escolha uma área —</option>
+                          {teams.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </Field>
+
+                      <Field label="Nome da área">
+                        <input
+                          className={inputCls}
+                          value={highlightForm?.areaName || ""}
+                          onChange={(e) => setHighlightForm({ ...highlightForm, areaName: e.target.value })}
+                        />
+                      </Field>
+                      <Field label="Foto da área">
+                        <ImageUpload
+                          value={highlightForm?.areaPhoto || ""}
+                          onChange={(url) => setHighlightForm({ ...highlightForm, areaPhoto: url })}
+                        />
+                      </Field>
+                      <Field label="Descrição">
+                        <textarea
+                          className={`${inputCls} h-24 resize-none`}
+                          value={highlightForm?.areaDesc || ""}
+                          onChange={(e) => setHighlightForm({ ...highlightForm, areaDesc: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+
                   </div>
 
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gold">
-                      Área em Foco
-                    </p>
-                    <Field label="Nome da área">
-                      <input
-                        className={inputCls}
-                        value={highlightForm?.areaName || ""}
-                        onChange={(e) => setHighlightForm({ ...highlightForm, areaName: e.target.value })}
-                      />
-                    </Field>
-                    <Field label="Foto da área">
-                      <ImageUpload
-                        value={highlightForm?.areaPhoto || ""}
-                        onChange={(url) => setHighlightForm({ ...highlightForm, areaPhoto: url })}
-                      />
-                    </Field>
-                    <Field label="Descrição">
-                      <textarea
-                        className={`${inputCls} h-24 resize-none`}
-                        value={highlightForm?.areaDesc || ""}
-                        onChange={(e) => setHighlightForm({ ...highlightForm, areaDesc: e.target.value })}
-                      />
-                    </Field>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => { updateHighlight(highlightForm); showToast("Destaques atualizados."); }}
-                  className="w-full mt-6 bg-navy text-white font-black py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-navy/80 transition-colors"
-                >
-                  Salvar e Atualizar Home
-                </button>
-              </section>
-            )}
+                  <button
+                    onClick={() => { updateHighlight(highlightForm); showToast("Destaques atualizados."); }}
+                    className="w-full mt-6 bg-navy text-white font-black py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-navy/80 transition-colors"
+                  >
+                    Salvar e Atualizar Home
+                  </button>
+                </section>
+              );
+            })()}
 
             {/* PATROCINADORES */}
             {activeTab === "patrocinadores" && (
@@ -843,11 +890,15 @@ export default function AdminPage() {
                   </div>
 
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (!sponsorForm.name.trim()) { showToast("Preencha o nome da empresa.", false); return; }
-                      addSponsor({ id: String(Date.now()), name: sponsorForm.name.trim(), logoUrl: sponsorForm.logoUrl.trim() });
-                      setSponsorForm({ name: "", logoUrl: "" });
-                      showToast("Parceiro adicionado.");
+                      try {
+                        await addSponsor({ name: sponsorForm.name.trim(), logoUrl: sponsorForm.logoUrl.trim() });
+                        setSponsorForm({ name: "", logoUrl: "" });
+                        showToast("Parceiro adicionado.");
+                      } catch {
+                        showToast("Erro ao adicionar parceiro.", false);
+                      }
                     }}
                     className="flex items-center gap-2 bg-gold/90 text-navy font-black py-2.5 px-6 text-[11px] uppercase tracking-[0.15em] hover:bg-gold transition-colors"
                   >
@@ -873,7 +924,7 @@ export default function AdminPage() {
                           className="relative group border border-gray-100 p-4 flex flex-col items-center gap-2 hover:border-gray-200 transition-colors"
                         >
                           <button
-                            onClick={() => { if (confirm(`Remover ${s.name}?`)) removeSponsor(s.id); }}
+                            onClick={async () => { if (confirm(`Remover ${s.name}?`)) { try { await removeSponsor(s.id); showToast("Parceiro removido."); } catch { showToast("Erro ao remover parceiro.", false); } } }}
                             className="absolute top-2 right-2 w-5 h-5 bg-white border border-gray-100 text-gray-300 hover:bg-crimson hover:text-white hover:border-crimson flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
                           >
                             <X size={9} />
