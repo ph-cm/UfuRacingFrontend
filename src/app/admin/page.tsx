@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard, Newspaper, Star, Building2, Users,
@@ -187,9 +187,13 @@ export default function AdminPage() {
     if (activeTab === "noticias") void loadNewsList();
   }, [activeTab, loadDashboard, loadNewsList]);
 
-  // Sync highlight form with backend data whenever highlight changes
+  // Sync highlight form only on first real backend load (not on every context update)
+  const highlightSynced = useRef(false);
   useEffect(() => {
-    setHighlightForm(highlight);
+    if (!highlightSynced.current && highlight.memberName !== "Membro Destaque") {
+      setHighlightForm(highlight);
+      highlightSynced.current = true;
+    }
   }, [highlight]);
 
   const handleLogin = async () => {
