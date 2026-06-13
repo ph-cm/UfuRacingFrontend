@@ -11,6 +11,7 @@ import {
 import { useProject } from "@/context/ProjectContext";
 import type { Member } from "@/types/member";
 import AdminCalendar from "@/components/AdminCalendar";
+import ImageUpload from "@/components/ImageUpload";
 import {
   API_URL,
   setAdminToken,
@@ -137,7 +138,6 @@ export default function AdminPage() {
     { key: "team",      label: "Sub-área",       span: true },
     { key: "email",     label: "E-mail" },
     { key: "linkedin",  label: "LinkedIn URL" },
-    { key: "photoUrl",  label: "URL da foto" },
     { key: "birthDate", label: "Nascimento", type: "date" },
   ], []);
 
@@ -544,12 +544,10 @@ export default function AdminPage() {
                       onChange={(e) => setNewsForm({ ...newsForm, content: e.target.value })}
                     />
                   </Field>
-                  <Field label="URL da imagem (opcional)">
-                    <input
-                      className={inputCls}
-                      placeholder="https://..."
+                  <Field label="Imagem (opcional)">
+                    <ImageUpload
                       value={newsForm.image}
-                      onChange={(e) => setNewsForm({ ...newsForm, image: e.target.value })}
+                      onChange={(url) => setNewsForm({ ...newsForm, image: url })}
                     />
                   </Field>
                   <button
@@ -585,9 +583,8 @@ export default function AdminPage() {
                       Membro do Mês
                     </p>
                     {([
-                      { label: "Nome",       key: "memberName"  },
-                      { label: "Cargo",      key: "memberRole"  },
-                      { label: "URL da foto",key: "memberPhoto" },
+                      { label: "Nome",  key: "memberName" },
+                      { label: "Cargo", key: "memberRole" },
                     ] as const).map((f) => (
                       <Field key={f.key} label={f.label}>
                         <input
@@ -597,24 +594,32 @@ export default function AdminPage() {
                         />
                       </Field>
                     ))}
+                    <Field label="Foto do membro">
+                      <ImageUpload
+                        value={highlightForm?.memberPhoto || ""}
+                        onChange={(url) => setHighlightForm({ ...highlightForm, memberPhoto: url })}
+                        aspectHint="square"
+                      />
+                    </Field>
                   </div>
 
                   <div className="space-y-4">
                     <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gold">
                       Área em Foco
                     </p>
-                    {([
-                      { label: "Nome da área", key: "areaName"  },
-                      { label: "URL da foto",  key: "areaPhoto" },
-                    ] as const).map((f) => (
-                      <Field key={f.key} label={f.label}>
-                        <input
-                          className={inputCls}
-                          value={(highlightForm as any)?.[f.key] || ""}
-                          onChange={(e) => setHighlightForm({ ...highlightForm, [f.key]: e.target.value })}
-                        />
-                      </Field>
-                    ))}
+                    <Field label="Nome da área">
+                      <input
+                        className={inputCls}
+                        value={highlightForm?.areaName || ""}
+                        onChange={(e) => setHighlightForm({ ...highlightForm, areaName: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Foto da área">
+                      <ImageUpload
+                        value={highlightForm?.areaPhoto || ""}
+                        onChange={(url) => setHighlightForm({ ...highlightForm, areaPhoto: url })}
+                      />
+                    </Field>
                     <Field label="Descrição">
                       <textarea
                         className={`${inputCls} h-24 resize-none`}
@@ -650,25 +655,13 @@ export default function AdminPage() {
                         onChange={(e) => setSponsorForm({ ...sponsorForm, name: e.target.value })}
                       />
                     </Field>
-                    <Field label="URL da logo (PNG / SVG)">
-                      <input
-                        className={inputCls}
-                        placeholder="https://..."
+                    <Field label="Logo (PNG / SVG / JPG)">
+                      <ImageUpload
                         value={sponsorForm.logoUrl}
-                        onChange={(e) => setSponsorForm({ ...sponsorForm, logoUrl: e.target.value })}
+                        onChange={(url) => setSponsorForm({ ...sponsorForm, logoUrl: url })}
                       />
                     </Field>
                   </div>
-
-                  {sponsorForm.logoUrl && (
-                    <div className="mb-4 h-14 border border-dashed border-gray-200 bg-gray-50 flex items-center justify-center">
-                      <img
-                        src={sponsorForm.logoUrl} alt="preview"
-                        className="max-h-full max-w-xs object-contain"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                      />
-                    </div>
-                  )}
 
                   <button
                     onClick={() => {
@@ -746,6 +739,15 @@ export default function AdminPage() {
                         </Field>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-4">
+                    <Field label="Foto do membro">
+                      <ImageUpload
+                        value={memberForm.photoUrl}
+                        onChange={(url) => setMemberForm((p) => ({ ...p, photoUrl: url }))}
+                        aspectHint="square"
+                      />
+                    </Field>
                   </div>
                   <button
                     onClick={() => void handleAddMember()}
