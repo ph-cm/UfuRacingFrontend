@@ -153,6 +153,7 @@ export default function AdminPage() {
     }
   }, []);
 
+  
   useEffect(() => {
     if (activeTab === "home") void loadDashboard();
   }, [activeTab, loadDashboard]);
