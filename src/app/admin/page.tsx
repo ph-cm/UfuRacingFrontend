@@ -95,8 +95,8 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
 // ── Main component ────────────────────────────────────────────────
 export default function AdminPage() {
   const {
-    highlight, updateHighlight,
-    sponsors, addSponsor, removeSponsor,
+    highlight, updateHighlight, reloadHighlight,
+    sponsors, addSponsor, removeSponsor, reloadSponsors,
     members, addMember, updateMember, removeMember,
   } = useProject();
 
@@ -186,6 +186,11 @@ export default function AdminPage() {
     if (activeTab === "home") void loadDashboard();
     if (activeTab === "noticias") void loadNewsList();
   }, [activeTab, loadDashboard, loadNewsList]);
+
+  // Sync highlight form with backend data whenever highlight changes
+  useEffect(() => {
+    setHighlightForm(highlight);
+  }, [highlight]);
 
   const handleLogin = async () => {
     setLoginLoading(true);
@@ -855,19 +860,28 @@ export default function AdminPage() {
 
                   </div>
 
-                  <button
-                    onClick={async () => {
-                      try {
-                        await updateHighlight(highlightForm);
-                        showToast("Destaques atualizados.");
-                      } catch {
-                        showToast("Erro ao salvar destaques.", false);
-                      }
-                    }}
-                    className="w-full mt-6 bg-navy text-white font-black py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-navy/80 transition-colors"
-                  >
-                    Salvar e Atualizar Home
-                  </button>
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await updateHighlight(highlightForm);
+                          showToast("Destaques atualizados.");
+                        } catch {
+                          showToast("Erro ao salvar destaques.", false);
+                        }
+                      }}
+                      className="flex-1 bg-navy text-white font-black py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-navy/80 transition-colors"
+                    >
+                      Salvar e Atualizar Home
+                    </button>
+                    <button
+                      onClick={async () => { try { await reloadHighlight(); showToast("Destaque recarregado."); } catch { showToast("Erro ao recarregar.", false); } }}
+                      className="flex items-center gap-1 px-4 border border-gray-200 text-navy/50 hover:text-navy hover:border-gray-400 text-[10px] font-black uppercase tracking-wider transition-colors"
+                      title="Recarregar destaque do backend"
+                    >
+                      <RefreshCw size={10} /> Recarregar
+                    </button>
+                  </div>
                 </section>
               );
             })()}
@@ -916,7 +930,16 @@ export default function AdminPage() {
                 <div className="bg-white border border-gray-100 p-6">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className="text-xs font-black uppercase tracking-[0.12em] text-navy">Parceiros Ativos</h2>
-                    <span className="text-[10px] font-black text-navy bg-navy/8 px-3 py-1">{sponsors.length}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-navy bg-navy/8 px-3 py-1">{sponsors.length}</span>
+                      <button
+                        onClick={async () => { try { await reloadSponsors(); showToast("Lista atualizada."); } catch { showToast("Erro ao recarregar.", false); } }}
+                        className="text-[9px] font-black uppercase tracking-wider text-navy/50 hover:text-navy flex items-center gap-1 px-2 py-1 border border-gray-100 hover:border-gray-300 transition-colors"
+                        title="Recarregar do backend"
+                      >
+                        <RefreshCw size={9} /> Recarregar
+                      </button>
+                    </div>
                   </div>
 
                   {sponsors.length === 0 ? (

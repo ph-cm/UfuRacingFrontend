@@ -75,6 +75,8 @@ interface ProjectContextType {
   updateMember: (id: number, member: Omit<Member, "id">) => Promise<void>;
   removeMember: (id: number) => Promise<void>;
   reloadMembers: () => Promise<void>;
+  reloadSponsors: () => Promise<void>;
+  reloadHighlight: () => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -151,6 +153,33 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     setMembers(normalized);
   }
 
+  async function reloadSponsors() {
+    const sp = await getSponsors();
+    const normalized: Sponsor[] = (sp ?? []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      logoUrl: s.logoUrl ?? s.logo_url ?? s.logo ?? "",
+    }));
+    setSponsors(normalized);
+    try { localStorage.setItem(LS_KEYS.sponsors, JSON.stringify(normalized)); } catch {}
+  }
+
+  async function reloadHighlight() {
+    const hi = await getHighlight();
+    const normalized: Highlight = hi
+      ? {
+          memberName:  hi.memberName  ?? DEFAULT_HIGHLIGHT.memberName,
+          memberRole:  hi.memberRole  ?? DEFAULT_HIGHLIGHT.memberRole,
+          memberPhoto: hi.memberPhoto ?? DEFAULT_HIGHLIGHT.memberPhoto,
+          areaName:    hi.areaName    ?? DEFAULT_HIGHLIGHT.areaName,
+          areaDesc:    hi.areaDesc    ?? DEFAULT_HIGHLIGHT.areaDesc,
+          areaPhoto:   (hi as any).areaPhoto ?? (hi as any).area_photo ?? DEFAULT_HIGHLIGHT.areaPhoto,
+        }
+      : DEFAULT_HIGHLIGHT;
+    setHighlight(normalized);
+    try { localStorage.setItem(LS_KEYS.highlight, JSON.stringify(normalized)); } catch {}
+  }
+
   // 2) Depois: busca do backend e atualiza cache
   useEffect(() => {
     (async () => {
@@ -216,9 +245,17 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const updateHighlight = async (data: Highlight) => {
     const saved = await saveHighlight(data);
-    setHighlight(saved);
+    const merged: Highlight = {
+      memberName:  saved.memberName  ?? data.memberName  ?? DEFAULT_HIGHLIGHT.memberName,
+      memberRole:  saved.memberRole  ?? data.memberRole  ?? DEFAULT_HIGHLIGHT.memberRole,
+      memberPhoto: saved.memberPhoto ?? data.memberPhoto ?? DEFAULT_HIGHLIGHT.memberPhoto,
+      areaName:    saved.areaName    ?? data.areaName    ?? DEFAULT_HIGHLIGHT.areaName,
+      areaDesc:    saved.areaDesc    ?? data.areaDesc    ?? DEFAULT_HIGHLIGHT.areaDesc,
+      areaPhoto:   saved.areaPhoto   ?? data.areaPhoto   ?? DEFAULT_HIGHLIGHT.areaPhoto,
+    };
+    setHighlight(merged);
     try {
-      localStorage.setItem(LS_KEYS.highlight, JSON.stringify(saved));
+      localStorage.setItem(LS_KEYS.highlight, JSON.stringify(merged));
     } catch {}
   };
 
@@ -286,6 +323,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         updateMember: updateMemberFn,
         removeMember,
         reloadMembers,
+        reloadSponsors,
+        reloadHighlight,
       }}
     >
       {children}

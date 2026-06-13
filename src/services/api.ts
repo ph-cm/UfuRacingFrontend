@@ -237,6 +237,7 @@ export async function getSponsors(): Promise<SponsorItem[]> {
 //
 export async function getHighlight(): Promise<Highlight> {
   const res = await fetch(`${API_URL}/highlight/`, { cache: "no-store" });
+  if (res.status === 404) return normalizeHighlight({});
   const data = await asJson<any>(res);
   return normalizeHighlight(data ?? {});
 }
