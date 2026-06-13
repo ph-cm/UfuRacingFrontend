@@ -203,7 +203,7 @@ export async function getNews(): Promise<NewsItem[]> {
 // Mantive por compatibilidade, mas vai falhar se você passar id.
 // Use getNewsBySlug no front.
 export async function getNewsBySlug(slug: string): Promise<NewsDetail> {
-  const res = await fetch(`${API_URL}/news/${encodeURIComponent(slug)}`, { cache: "no-store" });
+  const res = await fetch(`${API_URL}/news/slug/${encodeURIComponent(slug)}`, { cache: "no-store" });
   const data = await asJson<any>(res);
   return normalizeNewsDetail(data);
 }

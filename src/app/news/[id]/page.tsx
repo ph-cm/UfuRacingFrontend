@@ -106,11 +106,13 @@ export default function NewsDetailPage() {
   return (
     <div className="bg-white min-h-screen">
       <div className="w-full h-[520px] relative overflow-hidden">
-        <img
-          src={news.image || "/placeholder.jpg"}
-          alt={news.title}
-          className="absolute inset-0 w-full h-full object-cover scale-105"
-        />
+        {news.image && (
+          <img
+            src={news.image}
+            alt={news.title}
+            className="absolute inset-0 w-full h-full object-cover scale-105"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-black/10" />
 
         <div className="absolute top-6 left-6 z-10">

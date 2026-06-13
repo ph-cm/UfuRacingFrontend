@@ -120,12 +120,18 @@ export default function NewsPage() {
               style={{ animationDelay: `${index * 80}ms` }}
             >
               <div className="relative w-full h-48 overflow-hidden bg-gray-100">
-                <img
-                  src={item.image || "/placeholder.jpg"}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 bg-linear-to-br flex items-center justify-center">
+                    <span className="text-gray-300 text-4xl font-black italic">UFU</span>
+                  </div>
+                )}
               </div>
 
               <div className="p-6">
